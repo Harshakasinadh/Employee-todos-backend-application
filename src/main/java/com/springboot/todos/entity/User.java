@@ -1,6 +1,8 @@
 package com.springboot.todos.entity;
 
 import jakarta.persistence.*;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 import org.jspecify.annotations.Nullable;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -30,19 +32,30 @@ public class User implements UserDetails {
     @Column (nullable = false)
     private String password;
 
+    @CreationTimestamp
     @Column (updatable = false, name = "created_at")
     private Date createdAt;
 
+    @UpdateTimestamp
     @Column (name = "updated_at")
     private Date updatedAt;
 
-    //private List<Todo> todos;
+    @ElementCollection (fetch = FetchType.EAGER)
+    @CollectionTable (name = "user_authorities", joinColumns = @JoinColumn(name = "user_id"))
+    private List<Authority> authorities;
+
+    @OneToMany (mappedBy = "owner", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Todo> todos;
 
     public User() {}
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return List.of();
+        return authorities;
+    }
+
+    public void setAuthorities(List<Authority> authorities) {
+        this.authorities = authorities;
     }
 
     @Override
